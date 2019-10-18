@@ -10,6 +10,11 @@ import numpy as np
 from astropy import units as u
 import matplotlib.pyplot as plt
 
+# To run this code you have to download the files from https://me.lsst.eu/gris/
+# and chance the data_path and plot_path files, further you have to specifiy
+# the area in the d_area_observing_strategies dic if area is different from
+# the 18000 deg^2 nominal WFD area
+
 # This is where your cadence strategy file is located
 data_path = "/afs/mpa/data/shuber/data/LSST_MAF_data/"
 plot_path = "/afs/mpa/home/shuber/research/MicrolensSN/plot/"
