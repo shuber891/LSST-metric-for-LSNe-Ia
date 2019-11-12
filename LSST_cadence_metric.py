@@ -11,8 +11,9 @@ from astropy import units as u
 import csv
 
 # To run this code you have to download the files from https://me.lsst.eu/gris/
-# and the opsim_runs_strategies_input.csv file from ...
-# Further chance the data_path and output_path files
+# and the opsim_runs_strategies_input.csv file from 
+# https://github.com/shuber891/LSST-metric-for-LSNe-Ia
+# Further chance the data_path and output_path files.
 
 # This is where your cadence strategy file is located
 data_path = "/afs/mpa/data/shuber/data/LSST_MAF_data/"
@@ -33,6 +34,7 @@ def f_fit_function(gap_median_filter):
 
 
 observing_strategies = []
+# to define which strategies to investigate
 file_strategies = open("%sopsim_runs_strategies_input.csv" % data_path, "r")
 filte_to_write_on = open("%sopsim_runs.csv" % output_path, "w")
 writer = csv.writer(filte_to_write_on)
@@ -42,43 +44,37 @@ for line in file_strategies:
     line = line.strip()
     if counter_line == 0:
         line_to_write = line.split(",")
-        line_to_write.append("Number of LSNe Ia")
+        line_to_write.append("lensed SNe Ia with good time delay")
         writer.writerow(line_to_write)
     if counter_line >= 1:
-        print line.split(",")
         observing_strategy = line.split(",")[1][:-3]
 
-        if observing_strategy == "baseline_v1.3_1yrs" or observing_strategy == "tde_illum75_v1.3_10yrs" or observing_strategy == "uer_illum75_v1.3_10yrs":
-            line_to_write = line.split(",")
-            line_to_write.append("-")
-            writer.writerow(line_to_write)
-        else:
-            array = np.load("%s%s_SL.npy" % (data_path, observing_strategy))
+        array = np.load("%s%s_SL.npy" % (data_path, observing_strategy))
 
-            gap_median_filter = f_get_median(array["gap_median"] * u.day)
-            cumulative_season_length = f_get_median((array["season_length"] * u.day).to(u.year)) 
+        gap_median_filter = f_get_median(array["gap_median"] * u.day)
+        cumulative_season_length = f_get_median((array["season_length"] * u.day).to(u.year)) 
 
-            area_pixel = array["area"] * u.deg**2
-            survey_area = np.sum(area_pixel)
+        area_pixel = array["area"] * u.deg**2
+        survey_area = np.sum(area_pixel)
 
-            N_OM10 = 45.7
-            survey_area_OM10 = 20000 * u.deg**2
-            cumulative_season_length_OM10 = 2.5 * u.year
+        N_OM10 = 45.7
+        survey_area_OM10 = 20000 * u.deg**2
+        cumulative_season_length_OM10 = 2.5 * u.year
 
-            # rescale numbers of OM10 with cumulative_season_length
-            # and survey_area of a given cadence strategy
-            total_number_of_LSNeIa_0M10 = N_OM10 * survey_area/survey_area_OM10 * cumulative_season_length/cumulative_season_length_OM10
+        # rescale numbers of OM10 with cumulative_season_length
+        # and survey_area of a given cadence strategy
+        total_number_of_LSNeIa_0M10 = N_OM10 * survey_area/survey_area_OM10 * cumulative_season_length/cumulative_season_length_OM10
 
-            # this estimates the number of well LSNeIa which have a well
-            # measured time delay, i.e. that at least one image as
-            # accuracy < 1 percent and precision < 5 percent
-            number_of_good_delay_LSNeIa = total_number_of_LSNeIa_0M10 / f_fit_function(gap_median_filter)
+        # this estimates the number of well LSNeIa which have a well
+        # measured time delay, i.e. that at least one image as
+        # accuracy < 1 percent and precision < 5 percent
+        number_of_good_delay_LSNeIa = total_number_of_LSNeIa_0M10 / f_fit_function(gap_median_filter)
 
-            print observing_strategy, survey_area, cumulative_season_length, gap_median_filter, number_of_good_delay_LSNeIa
+        print observing_strategy, survey_area, cumulative_season_length, gap_median_filter, number_of_good_delay_LSNeIa
 
-            line_to_write = line.split(",")
-            line_to_write.append(number_of_good_delay_LSNeIa)
-            writer.writerow(line_to_write)
+        line_to_write = line.split(",")
+        line_to_write.append(number_of_good_delay_LSNeIa)
+        writer.writerow(line_to_write)
 
     counter_line += 1
 
